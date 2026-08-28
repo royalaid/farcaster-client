@@ -1,14 +1,13 @@
 import { DdRum, RumActionType } from '@datadog/mobile-react-native';
 import PasteInput, {
   PastedFile,
-  PasteInputRef,
+  PasteTextInputInstance as PasteInputRef,
 } from '@mattermost/react-native-paste-input';
 import { AnalyticsEvent } from 'farcaster-analytics';
 import { useUnfocusInputs } from 'farcaster-expo';
 import React, { RefObject, useEffect, useRef } from 'react';
 import {
   Platform,
-  TextInput,
   TextInputProps,
   TextStyle,
   View,
@@ -23,26 +22,9 @@ import { useTheme } from '~/contexts/ThemeProvider';
 import { useLinkifyText } from '~/hooks/useLinkifyText';
 import { LinkifyInstanceType } from '~/utils/LinkifyUtils';
 
-export type TextareaProps = Pick<
-  TextInputProps,
-  | 'autoCapitalize'
-  | 'autoCorrect'
-  | 'autoFocus'
-  | 'editable'
-  | 'keyboardType'
-  | 'maxLength'
-  | 'numberOfLines'
-  | 'onBlur'
-  | 'onChangeText'
-  | 'onFocus'
-  | 'onSelectionChange'
-  | 'onKeyPress'
-  | 'placeholder'
-  | 'scrollEnabled'
-  | 'spellCheck'
-  | 'textAlignVertical'
-  | 'value'
-> & {
+import { getFirstPastedImage } from './PastedImageUtils';
+
+export type TextareaProps = Omit<TextInputProps, 'children'> & {
   bordered?: boolean;
   containerStyle?: ViewStyle[];
   height?: number;
@@ -70,6 +52,7 @@ const LinkifiedTextarea = ({
   maxLength,
   maxHeight,
   minHeight,
+  multiline = true,
   numberOfLines,
   onBlur,
   onChangeText,
@@ -81,6 +64,7 @@ const LinkifiedTextarea = ({
   spellCheck = true,
   containerStyle,
   inputStyle,
+  style,
   textStyle,
   textAlign = 'left',
   textAlignVertical = 'top',
@@ -91,6 +75,7 @@ const LinkifiedTextarea = ({
   linkifyInstance,
   ref,
   inBottomSheet,
+  ...inputProps
 }: TextareaProps) => {
   const t = useTheme();
 
@@ -115,9 +100,7 @@ const LinkifiedTextarea = ({
         source: 'LinkifiedTextarea',
       });
 
-      const firstImageMatchedFromPastedFiles = files.find((f) =>
-        /\.(jpg|jpeg|png).*$/.test(f.uri),
-      );
+      const firstImageMatchedFromPastedFiles = getFirstPastedImage(files);
 
       if (
         typeof firstImageMatchedFromPastedFiles !== 'undefined' &&
@@ -137,11 +120,6 @@ const LinkifiedTextarea = ({
     return () => removeListener(onUnfocusInputs);
   }, [addListener, inputRef, removeListener]);
 
-  // RN 0.83 / Expo 55 regressions can make PasteInput fail to receive focus/taps
-  // in some composer flows. Use native TextInput on mobile for consistent behavior.
-  const useNativeTextInputFallback =
-    Platform.OS === 'ios' || Platform.OS === 'android';
-
   return (
     <View
       style={[
@@ -152,90 +130,40 @@ const LinkifiedTextarea = ({
         containerStyle,
       ]}
     >
-      {useNativeTextInputFallback ? (
-        // IMPORTANT: keep this branch a controlled input via `value`. We
-        // intentionally do NOT render `<Text>{linkifiedText}</Text>` as
-        // children of TextInput here:
-        //   - On iOS the native UITextView ignores `children` for content
-        //     (it only reads `value`/`defaultValue`), so the JS state and
-        //     the native text become desynchronized as you type, leading
-        //     to dropped keystrokes, cursor jumps, and the IME composing
-        //     buffer breaking after the input has been alive for a while.
-        //   - On Android, mixing `value` with `children` triggers an
-        //     invariant, and even without `value` the children-driven
-        //     path resets edit state on every render.
-        // Inline link/mention styling on the input itself is therefore
-        // only available on the PasteInput (web) branch below; on mobile
-        // the input renders plain text and styling is applied to the
-        // rendered cast preview instead.
-        <TextInput
-          autoCapitalize={autoCapitalize}
-          autoCorrect={autoCorrect}
-          autoFocus={autoFocus}
-          editable={editable}
-          keyboardType={keyboardType}
-          maxLength={maxLength}
-          multiline
-          numberOfLines={numberOfLines}
-          onBlur={onBlur}
-          onChangeText={onChangeText}
-          onFocus={onFocus}
-          onKeyPress={onKeyPress}
-          onSelectionChange={onSelectionChange}
-          placeholder={placeholder}
-          placeholderTextColor={t.colors.text.tertiary}
-          ref={inputRef as unknown as RefObject<TextInput>}
-          scrollEnabled={scrollEnabled}
-          selectionColor={t.colors.selection}
-          spellCheck={spellCheck}
-          style={[
-            textAlign === 'center' ? t.textCenter : t.textLeft,
-            t.texts.primary,
-            t.textLg,
-            t.alignCenter,
-            {
-              height,
-              minHeight,
-              maxHeight,
-            },
-            inputStyle,
-          ]}
-          textAlignVertical={textAlignVertical}
-          value={value}
-        />
-      ) : (
-        <LinkifiedPasteInput
-          autoCapitalize={autoCapitalize}
-          autoCorrect={autoCorrect}
-          autoFocus={autoFocus}
-          editable={editable}
-          keyboardType={keyboardType}
-          inBottomSheet={inBottomSheet}
-          inputRef={inputRef}
-          maxLength={maxLength}
-          numberOfLines={numberOfLines}
-          onBlur={onBlur}
-          onChangeText={onChangeText}
-          onFocus={onFocus}
-          onPaste={onPaste}
-          onKeyPress={onKeyPress}
-          onSelectionChange={onSelectionChange}
-          placeholder={placeholder}
-          scrollEnabled={scrollEnabled}
-          spellCheck={spellCheck}
-          height={height}
-          inputStyle={inputStyle}
-          linkifyInstance={linkifyInstance}
-          maxHeight={maxHeight}
-          minHeight={minHeight}
-          textAlign={textAlign}
-          textStyle={textStyle}
-          textAlignVertical={textAlignVertical}
-          userMentions={userMentions}
-          channelMentions={channelMentions}
-          value={value}
-        />
-      )}
+      <LinkifiedPasteInput
+        {...inputProps}
+        autoCapitalize={autoCapitalize}
+        autoCorrect={autoCorrect}
+        autoFocus={autoFocus}
+        editable={editable}
+        keyboardType={keyboardType}
+        inBottomSheet={inBottomSheet}
+        inputRef={inputRef}
+        maxLength={maxLength}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        onBlur={onBlur}
+        onChangeText={onChangeText}
+        onFocus={onFocus}
+        onPaste={onPaste}
+        onKeyPress={onKeyPress}
+        onSelectionChange={onSelectionChange}
+        placeholder={placeholder}
+        scrollEnabled={scrollEnabled}
+        spellCheck={spellCheck}
+        height={height}
+        inputStyle={inputStyle}
+        linkifyInstance={linkifyInstance}
+        maxHeight={maxHeight}
+        minHeight={minHeight}
+        style={style}
+        textAlign={textAlign}
+        textStyle={textStyle}
+        textAlignVertical={textAlignVertical}
+        userMentions={userMentions}
+        channelMentions={channelMentions}
+        value={value}
+      />
     </View>
   );
 };
@@ -248,42 +176,19 @@ type LinkifiedPasteInputProps = Omit<
   onPaste: (err: string | undefined, files: PastedFile[]) => Promise<void>;
 };
 
-const LinkifiedPasteInput = ({
-  autoCapitalize,
-  autoCorrect,
-  autoFocus,
-  editable,
-  keyboardType,
-  height,
-  maxLength,
-  maxHeight,
-  minHeight,
-  numberOfLines,
-  onBlur,
-  onChangeText,
-  onFocus,
-  onSelectionChange,
-  onKeyPress,
-  onPaste,
-  placeholder,
-  scrollEnabled,
-  spellCheck,
-  inputRef,
-  inputStyle,
-  textStyle,
-  textAlign,
-  textAlignVertical,
-  value = '',
-  userMentions,
+type LinkifiedTextProps = Pick<
+  TextareaProps,
+  'channelMentions' | 'linkifyInstance' | 'textStyle' | 'userMentions' | 'value'
+>;
+
+const LinkifiedText = ({
   channelMentions,
   linkifyInstance,
-  inBottomSheet,
-}: LinkifiedPasteInputProps) => {
+  textStyle,
+  userMentions,
+  value = '',
+}: LinkifiedTextProps) => {
   const t = useTheme();
-  const PasteInputComponent = inBottomSheet
-    ? BottomSheetPasteInput
-    : PasteInput;
-
   const { linkifiedText } = useLinkifyText({
     text: value,
     mentions: userMentions,
@@ -301,7 +206,53 @@ const LinkifiedPasteInput = ({
   });
 
   return (
+    <Text style={[t.texts.primary, t.textLg, textStyle]}>{linkifiedText}</Text>
+  );
+};
+
+const LinkifiedPasteInput = ({
+  autoCapitalize,
+  autoCorrect,
+  autoFocus,
+  editable,
+  keyboardType,
+  height,
+  maxLength,
+  maxHeight,
+  minHeight,
+  multiline,
+  numberOfLines,
+  onBlur,
+  onChangeText,
+  onFocus,
+  onSelectionChange,
+  onKeyPress,
+  onPaste,
+  placeholder,
+  scrollEnabled,
+  spellCheck,
+  inputRef,
+  inputStyle,
+  style,
+  textStyle,
+  textAlign,
+  textAlignVertical,
+  value = '',
+  userMentions,
+  channelMentions,
+  linkifyInstance,
+  inBottomSheet,
+  ...inputProps
+}: LinkifiedPasteInputProps) => {
+  const t = useTheme();
+  const PasteInputComponent = inBottomSheet
+    ? BottomSheetPasteInput
+    : PasteInput;
+  const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
+
+  return (
     <PasteInputComponent
+      {...inputProps}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       autoFocus={autoFocus}
@@ -309,19 +260,11 @@ const LinkifiedPasteInput = ({
       keyboardType={keyboardType}
       hitSlop={hitSlop}
       maxLength={maxLength}
-      multiline
+      multiline={multiline}
       numberOfLines={numberOfLines}
-      onBlur={(e: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
-        if (onBlur) {
-          onBlur(e);
-        }
-      }}
+      onBlur={onBlur}
       onChangeText={onChangeText}
-      onFocus={(e: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
-        if (onFocus) {
-          onFocus(e);
-        }
-      }}
+      onFocus={onFocus}
       onPaste={onPaste}
       onKeyPress={onKeyPress}
       onSelectionChange={onSelectionChange}
@@ -341,13 +284,21 @@ const LinkifiedPasteInput = ({
           minHeight,
           maxHeight,
         },
+        style,
         inputStyle,
       ]}
       textAlignVertical={textAlignVertical}
+      value={isNative ? value : undefined}
     >
-      <Text style={[t.texts.primary, t.textLg, textStyle]}>
-        {linkifiedText}
-      </Text>
+      {isNative ? undefined : (
+        <LinkifiedText
+          channelMentions={channelMentions}
+          linkifyInstance={linkifyInstance}
+          textStyle={textStyle}
+          userMentions={userMentions}
+          value={value}
+        />
+      )}
     </PasteInputComponent>
   );
 };

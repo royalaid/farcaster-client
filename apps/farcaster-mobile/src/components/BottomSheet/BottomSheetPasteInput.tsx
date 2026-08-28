@@ -1,7 +1,7 @@
 import { useBottomSheetInternal } from '@gorhom/bottom-sheet';
 import PasteInput, {
   PasteInputProps,
-  PasteInputRef,
+  PasteTextInputInstance as PasteInputRef,
 } from '@mattermost/react-native-paste-input';
 import React from 'react';
 import { runOnJS } from 'react-native-reanimated';

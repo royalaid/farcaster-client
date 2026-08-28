@@ -71,7 +71,7 @@
     "@livekit/react-native": "^2.10.2",
     "@livekit/react-native-expo-plugin": "^1.0.2",
     "@livekit/react-native-webrtc": "^144.0.0",
-    "@mattermost/react-native-paste-input": "^0.8.1",
+    "@mattermost/react-native-paste-input": "2.0.1",
     "@privy-io/expo": "0.59.2",
     "@privy-io/expo-native-extensions": "0.0.5",
     "@privy-io/js-sdk-core": "0.55.2",

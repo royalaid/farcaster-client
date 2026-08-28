@@ -1,5 +1,5 @@
 import { Octicons } from '@expo/vector-icons';
-import { PasteInputRef } from '@mattermost/react-native-paste-input';
+import { PasteTextInputInstance as PasteInputRef } from '@mattermost/react-native-paste-input';
 import { ApiCast, ApiUser } from 'farcaster-client-data';
 import {
   CastReactionType,

@@ -2,7 +2,7 @@ import { DdRum, RumActionType } from '@datadog/mobile-react-native';
 import { Octicons } from '@expo/vector-icons';
 import {
   PastedFile,
-  PasteInputRef,
+  PasteTextInputInstance as PasteInputRef,
 } from '@mattermost/react-native-paste-input';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';

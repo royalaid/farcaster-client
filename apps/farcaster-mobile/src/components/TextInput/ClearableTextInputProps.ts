@@ -1,4 +1,4 @@
-import { PasteInputRef } from '@mattermost/react-native-paste-input';
+import { PasteTextInputInstance as PasteInputRef } from '@mattermost/react-native-paste-input';
 import * as React from 'react';
 
 import { TextareaProps } from './LinkifiedTextarea';

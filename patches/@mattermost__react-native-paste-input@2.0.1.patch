@@ -1,0 +1,83 @@
+# Backports two upstream fixes pending in @mattermost/react-native-paste-input:
+# - https://github.com/mattermost/react-native-paste-input/pull/55
+#   commit 8fdcd0ac9cce491eac1ff13aa06dcc9da0f1167e
+# - https://github.com/mattermost/react-native-paste-input/pull/56
+#   commit 73443073addfc9b18403ff9bbcad3c53fa350259
+
+diff --git a/src/PasteInput.tsx b/src/PasteInput.tsx
+index 12befab..b0d63e6 100644
+--- a/src/PasteInput.tsx
++++ b/src/PasteInput.tsx
+@@ -26,7 +26,12 @@ import React, {
+     forwardRef,
+     useImperativeHandle,
+ } from 'react';
+-import { Platform, TextInput, NativeEventEmitter } from 'react-native';
++import {
++    Platform,
++    TextInput,
++    NativeEventEmitter,
++    findNodeHandle,
++} from 'react-native';
+ import type {
+     PastedFile,
+     PasteInputProps,
+@@ -78,9 +83,14 @@ function PasteInputIOSComponent(
+ 
+     // Register/unregister with native module on mount/unmount
+     useEffect(() => {
+-        // Get the native tag from the ref's internal __nativeTag property
+-        // @ts-ignore - __nativeTag is an internal property
+-        const nativeTag = textInputRef.current?.__nativeTag;
++        // Use findNodeHandle so we work across both legacy and Fabric. Reading
++        // `__nativeTag` directly returns undefined on RN 0.76+/Fabric — the
++        // renderer exposes the tag as `_nativeTag` (single underscore) on the
++        // Fabric instance — which silently breaks paste interception because
++        // the input is never registered with the native module. See #54.
++        const nativeTag = textInputRef.current
++            ? findNodeHandle(textInputRef.current)
++            : null;
+ 
+         if (!nativeTag) {
+             if (__DEV__) {
+diff --git a/ios/PasteInputModule.mm b/ios/PasteInputModule.mm
+index 59ff531..5cffeab 100644
+--- a/ios/PasteInputModule.mm
++++ b/ios/PasteInputModule.mm
+@@ -41,7 +41,7 @@ @interface PasteInputModule ()
+ @property (nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *> *registrationGenerations;
+ @end
+ 
+-static id _reactHost = nil;
++static RCTRootViewFactory *_rootViewFactory = nil;
+ 
+ @implementation PasteInputModule
+ 
+@@ -55,7 +55,12 @@ + (BOOL)requiresMainQueueSetup
+ + (void)setup:(RCTRootViewFactory *)rootViewFactory
+ {
+ #ifdef RCT_NEW_ARCH_ENABLED
+-    _reactHost = rootViewFactory.reactHost;
++    // The RCTHost is created lazily by the root view factory when the first
++    // surface mounts, which can happen after +setup: runs (e.g. under Expo,
++    // where the app is set up before the first surface renders). So keep the
++    // factory and read reactHost from it at lookup time instead of capturing a
++    // (possibly nil) value here.
++    _rootViewFactory = rootViewFactory;
+ #endif
+ }
+ 
+@@ -173,9 +178,11 @@ - (void)removeListeners:(double)count
+ - (nullable id)getSurfacePresenter
+ {
+ #ifdef RCT_NEW_ARCH_ENABLED
++    // Read the host fresh from the factory (see +setup: for why it's not cached).
++    id reactHost = _rootViewFactory.reactHost;
+     // Try bridgeless mode first (if reactHost is set)
+-    if (_reactHost) {
+-        return [_reactHost performSelector:@selector(surfacePresenter)];
++    if (reactHost) {
++        return [reactHost performSelector:@selector(surfacePresenter)];
+     }
+     // Fallback to bridge mode (Fabric with bridge enabled)
+     else if (self.bridge) {

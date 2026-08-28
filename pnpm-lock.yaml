@@ -42,9 +42,9 @@ patchedDependencies:
   '@farcaster/snap':
     hash: be41d4c1617d0dc9ec2d63c80c1ec3b3453077e804609e59dd95938e6a3e4057
     path: patches/@farcaster__snap.patch
-  '@mattermost/react-native-paste-input':
-    hash: cfd612672ed2ae956b2f3bdd5493859b7a04e8f292c948ab00691487ebe495e7
-    path: patches/@mattermost__react-native-paste-input.patch
+  '@mattermost/react-native-paste-input@2.0.1':
+    hash: d9fdb26af5cfe92017e9fae40f32ee16d919bcea66c9fec34984a426eb183e8c
+    path: patches/@mattermost__react-native-paste-input@2.0.1.patch
   '@react-navigation/elements':
     hash: 861e5123bb19976361084c8741286edfaf1fa10d5cba1803c364507b1cac8549
     path: patches/@react-navigation__elements.patch
@@ -202,8 +202,8 @@ importers:
         specifier: ^144.0.0
         version: 144.0.0(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.74.89(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6))
       '@mattermost/react-native-paste-input':
-        specifier: ^0.8.1
-        version: 0.8.1(patch_hash=cfd612672ed2ae956b2f3bdd5493859b7a04e8f292c948ab00691487ebe495e7)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.74.89(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6))(react@19.2.0)
+        specifier: 2.0.1
+        version: 2.0.1(patch_hash=d9fdb26af5cfe92017e9fae40f32ee16d919bcea66c9fec34984a426eb183e8c)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.74.89(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6))(react@19.2.0)
       '@privy-io/expo':
         specifier: 0.59.2
         version: 0.59.2(6b45fb7d22cc2f8c065b52e068528cf5)
@@ -4018,11 +4018,11 @@ packages:
       react: ^17.0.2 || ^18.0.0 || ^19.0
       react-dom: ^17.0.2 || ^18.0.0 || ^19.0
 
-  '@mattermost/react-native-paste-input@0.8.1':
-    resolution: {integrity: sha512-QHpwWORPALmX5FczCewRlJkVqtltD84mlpMpto5IGLKdHMAoHeXMiG4VJVh2XkRQvTyUhYegtrUrJzf8dkJokA==}
+  '@mattermost/react-native-paste-input@2.0.1':
+    resolution: {integrity: sha512-Q9zjXvjwxVQ1M8ylxr9Y+wUpG7xb1wW4u+I34oPvF3etTyBrGtVyA4Bt7Xphgc29eW6wQFUxTIbzZc3E6W2MQg==}
     peerDependencies:
       react: '*'
-      react-native: '*'
+      react-native: '>=0.76.0'
 
   '@mermaid-js/parser@1.1.0':
     resolution: {integrity: sha512-gxK9ZX2+Fex5zu8LhRQoMeMPEHbc73UKZ0FQ54YrQtUxE1VVhMwzeNtKRPAu5aXks4FasbMe4xB4bWrmq6Jlxw==}
@@ -20876,11 +20876,10 @@ snapshots:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
 
-  '@mattermost/react-native-paste-input@0.8.1(patch_hash=cfd612672ed2ae956b2f3bdd5493859b7a04e8f292c948ab00691487ebe495e7)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.74.89(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6))(react@19.2.0)':
+  '@mattermost/react-native-paste-input@2.0.1(patch_hash=d9fdb26af5cfe92017e9fae40f32ee16d919bcea66c9fec34984a426eb183e8c)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.74.89(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6))(react@19.2.0)':
     dependencies:
       react: 19.2.0
       react-native: 0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.74.89(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.0)(utf-8-validate@6.0.6)
-      semver: 7.6.3
 
   '@mermaid-js/parser@1.1.0':
     dependencies:
@@ -38944,7 +38943,8 @@ snapshots:
     dependencies:
       lru-cache: 6.0.0
 
-  semver@7.6.3: {}
+  semver@7.6.3:
+    optional: true
 
   semver@7.7.2: {}
 
