@@ -49,11 +49,17 @@ jobs:
 
       - name: Install CocoaPods 1.16.2
         run: |
-          GEM_BIN="$(ruby -r rubygems -e 'puts Gem.user_dir')/bin"
+          GEM_HOME="$(gem environment user_gemhome)"
+          GEM_BIN="$GEM_HOME/bin"
           gem install --user-install cocoapods -v 1.16.2 --no-document
-          echo "$GEM_BIN" >> "$GITHUB_PATH"
-          export PATH="$GEM_BIN:$PATH"
-          test "$(pod --version)" = "1.16.2"
+          POD_BIN="$GEM_BIN/pod"
+          test -x "$POD_BIN"
+          pod_version="$("$POD_BIN" --version)"
+          test "$pod_version" = "1.16.2"
+          printf 'POD_BIN=%s\n' "$POD_BIN"
+          printf 'CocoaPods version: %s\n' "$pod_version"
+          printf 'POD_BIN=%s\n' "$POD_BIN" >> "$GITHUB_ENV"
+          printf '%s\n' "$GEM_BIN" >> "$GITHUB_PATH"
 
       - name: Record tool versions
         run: |
@@ -61,7 +67,7 @@ jobs:
           {
             node --version
             pnpm --version
-            pod --version
+            "$POD_BIN" --version
             xcodebuild -version
           } > "$EVIDENCE_DIR/versions.txt" 2>&1
           cat "$EVIDENCE_DIR/versions.txt"
@@ -71,7 +77,7 @@ jobs:
           EVIDENCE_DIR="$RUNNER_TEMP/$EVIDENCE_SUBDIR"
           set +e
           cd apps/farcaster-mobile/ios
-          RCT_NEW_ARCH_ENABLED=1 pod update react-native-paste-input --no-repo-update \
+          RCT_NEW_ARCH_ENABLED=1 "$POD_BIN" update react-native-paste-input --no-repo-update \
             2>&1 | tee "$EVIDENCE_DIR/cocoapods.log"
           pod_status=${PIPESTATUS[0]}
           printf '%s\n' "$pod_status" > "$EVIDENCE_DIR/cocoapods-exit-status.txt"
