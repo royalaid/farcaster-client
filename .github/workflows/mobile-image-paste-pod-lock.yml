@@ -49,17 +49,19 @@ jobs:
 
       - name: Install CocoaPods 1.16.2
         run: |
-          GEM_HOME="$(gem environment user_gemhome)"
-          GEM_BIN="$GEM_HOME/bin"
           gem install --user-install cocoapods -v 1.16.2 --no-document
-          POD_BIN="$GEM_BIN/pod"
-          test -x "$POD_BIN"
+          POD_BIN="$RUNNER_TEMP/pod-1.16.2"
+          cat > "$POD_BIN" <<'RUBY'
+          #!/usr/bin/env ruby
+          require "rubygems"
+          load Gem.activate_bin_path("cocoapods", "pod", "= 1.16.2")
+          RUBY
+          chmod +x "$POD_BIN"
           pod_version="$("$POD_BIN" --version)"
           test "$pod_version" = "1.16.2"
           printf 'POD_BIN=%s\n' "$POD_BIN"
           printf 'CocoaPods version: %s\n' "$pod_version"
           printf 'POD_BIN=%s\n' "$POD_BIN" >> "$GITHUB_ENV"
-          printf '%s\n' "$GEM_BIN" >> "$GITHUB_PATH"
 
       - name: Record tool versions
         run: |
